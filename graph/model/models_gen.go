@@ -13,6 +13,10 @@ type Alarm struct {
 	SeverityLevel SeverityLevel `json:"severityLevel"`
 }
 
+type AlarmState struct {
+	Alarms []*Alarm `json:"alarms"`
+}
+
 type Mutation struct {
 }
 

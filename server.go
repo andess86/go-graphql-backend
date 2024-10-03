@@ -19,22 +19,33 @@ func main() {
     if port == "" {
         port = defaultPort
     }
+	
 
     // Initialize the propeller generator and channel
     propellerGen := generator.NewPropellerGenerator()
     propellerChannel := propellerGen.StartGenerating()
 
+	alarmGen := generator.NewAlarmGenerator()
+
+	alarmChannel := alarmGen.StartGenerating()
+
+
     // Create a new resolver instance with the propeller channel
     resolver := &graph.Resolver{
         PropellerDataChannel: propellerChannel,
+		AlarmDataChannel: alarmChannel,
+		
     }
 
+	
+	
+
     // Start the propeller generator in a separate goroutine
-    go func() {
-        for data := range propellerChannel {
-            log.Printf("Main received data: %+v", data)
-        }
-    }()
+    // go func() {
+    //     for data := range propellerChannel {
+    //         log.Printf("Main received data: %+v", data)
+    //     }
+    // }()
 
     // Create a new server with the generated schema
     srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))

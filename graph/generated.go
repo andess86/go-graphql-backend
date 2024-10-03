@@ -54,6 +54,10 @@ type ComplexityRoot struct {
 		SeverityLevel func(childComplexity int) int
 	}
 
+	AlarmState struct {
+		Alarms func(childComplexity int) int
+	}
+
 	Mutation struct {
 		SetSteeringMode func(childComplexity int, mode model.SteeringMode) int
 	}
@@ -75,6 +79,7 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
+		AlarmStateUpdated    func(childComplexity int) int
 		PropellerDataUpdated func(childComplexity int) int
 		SteeringModeUpdated  func(childComplexity int) int
 	}
@@ -90,6 +95,7 @@ type QueryResolver interface {
 type SubscriptionResolver interface {
 	PropellerDataUpdated(ctx context.Context) (<-chan *model.Propeller, error)
 	SteeringModeUpdated(ctx context.Context) (<-chan *model.SteeringState, error)
+	AlarmStateUpdated(ctx context.Context) (<-chan *model.AlarmState, error)
 }
 
 type executableSchema struct {
@@ -124,6 +130,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Alarm.SeverityLevel(childComplexity), true
+
+	case "AlarmState.alarms":
+		if e.complexity.AlarmState.Alarms == nil {
+			break
+		}
+
+		return e.complexity.AlarmState.Alarms(childComplexity), true
 
 	case "Mutation.setSteeringMode":
 		if e.complexity.Mutation.SetSteeringMode == nil {
@@ -185,6 +198,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SteeringState.Mode(childComplexity), true
+
+	case "Subscription.alarmStateUpdated":
+		if e.complexity.Subscription.AlarmStateUpdated == nil {
+			break
+		}
+
+		return e.complexity.Subscription.AlarmStateUpdated(childComplexity), true
 
 	case "Subscription.propellerDataUpdated":
 		if e.complexity.Subscription.PropellerDataUpdated == nil {
@@ -523,6 +543,56 @@ func (ec *executionContext) fieldContext_Alarm_severityLevel(_ context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type SeverityLevel does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AlarmState_alarms(ctx context.Context, field graphql.CollectedField, obj *model.AlarmState) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AlarmState_alarms(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Alarms, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Alarm)
+	fc.Result = res
+	return ec.marshalNAlarm2ᚕᚖgithubᚗcomᚋandess86ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐAlarmᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AlarmState_alarms(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AlarmState",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_Alarm_name(ctx, field)
+			case "severityLevel":
+				return ec.fieldContext_Alarm_severityLevel(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Alarm", field.Name)
 		},
 	}
 	return fc, nil
@@ -1163,6 +1233,68 @@ func (ec *executionContext) fieldContext_Subscription_steeringModeUpdated(_ cont
 				return ec.fieldContext_SteeringState_mode(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SteeringState", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Subscription_alarmStateUpdated(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	fc, err := ec.fieldContext_Subscription_alarmStateUpdated(ctx, field)
+	if err != nil {
+		return nil
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().AlarmStateUpdated(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return nil
+	}
+	return func(ctx context.Context) graphql.Marshaler {
+		select {
+		case res, ok := <-resTmp.(<-chan *model.AlarmState):
+			if !ok {
+				return nil
+			}
+			return graphql.WriterFunc(func(w io.Writer) {
+				w.Write([]byte{'{'})
+				graphql.MarshalString(field.Alias).MarshalGQL(w)
+				w.Write([]byte{':'})
+				ec.marshalNAlarmState2ᚖgithubᚗcomᚋandess86ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐAlarmState(ctx, field.Selections, res).MarshalGQL(w)
+				w.Write([]byte{'}'})
+			})
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
+
+func (ec *executionContext) fieldContext_Subscription_alarmStateUpdated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "alarms":
+				return ec.fieldContext_AlarmState_alarms(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AlarmState", field.Name)
 		},
 	}
 	return fc, nil
@@ -2993,6 +3125,45 @@ func (ec *executionContext) _Alarm(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var alarmStateImplementors = []string{"AlarmState"}
+
+func (ec *executionContext) _AlarmState(ctx context.Context, sel ast.SelectionSet, obj *model.AlarmState) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, alarmStateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AlarmState")
+		case "alarms":
+			out.Values[i] = ec._AlarmState_alarms(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -3246,6 +3417,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 		return ec._Subscription_propellerDataUpdated(ctx, fields[0])
 	case "steeringModeUpdated":
 		return ec._Subscription_steeringModeUpdated(ctx, fields[0])
+	case "alarmStateUpdated":
+		return ec._Subscription_alarmStateUpdated(ctx, fields[0])
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
@@ -3577,6 +3750,60 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNAlarm2ᚕᚖgithubᚗcomᚋandess86ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐAlarmᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Alarm) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAlarm2ᚖgithubᚗcomᚋandess86ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐAlarm(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAlarm2ᚖgithubᚗcomᚋandess86ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐAlarm(ctx context.Context, sel ast.SelectionSet, v *model.Alarm) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Alarm(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNAlarmName2githubᚗcomᚋandess86ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐAlarmName(ctx context.Context, v interface{}) (model.AlarmName, error) {
 	var res model.AlarmName
 	err := res.UnmarshalGQL(v)
@@ -3585,6 +3812,20 @@ func (ec *executionContext) unmarshalNAlarmName2githubᚗcomᚋandess86ᚋgqlgen
 
 func (ec *executionContext) marshalNAlarmName2githubᚗcomᚋandess86ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐAlarmName(ctx context.Context, sel ast.SelectionSet, v model.AlarmName) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNAlarmState2githubᚗcomᚋandess86ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐAlarmState(ctx context.Context, sel ast.SelectionSet, v model.AlarmState) graphql.Marshaler {
+	return ec._AlarmState(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAlarmState2ᚖgithubᚗcomᚋandess86ᚋgqlgenᚑtodosᚋgraphᚋmodelᚐAlarmState(ctx context.Context, sel ast.SelectionSet, v *model.AlarmState) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AlarmState(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

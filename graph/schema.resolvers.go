@@ -8,24 +8,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/andess86/gqlgen-todos/generator" // Replace with your actual module path
 	"github.com/andess86/gqlgen-todos/graph/model"
 )
-
-// Resolver struct will hold references to generators or other dependencies
-type Resolver struct {
-	PropellerDataChannel <-chan generator.Propeller
-}
-
-// NewResolver initializes a new resolver with the propeller generator
-func NewResolver() *Resolver {
-	propellerGen := generator.NewPropellerGenerator()
-	propellerChannel := propellerGen.StartGenerating()
-
-	return &Resolver{
-		PropellerDataChannel: propellerChannel,
-	}
-}
 
 // SetSteeringMode is the resolver for the setSteeringMode field.
 func (r *mutationResolver) SetSteeringMode(ctx context.Context, mode model.SteeringMode) (*model.SteeringState, error) {
@@ -57,47 +41,45 @@ func (r *queryResolver) GetSteeringMode(ctx context.Context) (*model.SteeringSta
 	}, nil
 }
 
+// PropellerDataUpdated is the resolver for the propellerDataUpdated field.
 func (r *subscriptionResolver) PropellerDataUpdated(ctx context.Context) (<-chan *model.Propeller, error) {
-    log.Printf("Entered start of propellerDataUpdated resolver")
-    updateChannel := make(chan *model.Propeller)
+	log.Printf("Entered start of propellerDataUpdated resolver")
+	updateChannel := make(chan *model.Propeller)
 
-    // Use a goroutine to listen for updates
-    go func() {
-        defer close(updateChannel) // Ensure the channel is closed when done
-        log.Printf("Inside goroutine func")
+	// Use a goroutine to listen for updates
+	go func() {
+		defer close(updateChannel) // Ensure the channel is closed when done
+		log.Printf("Inside goroutine func")
 
-        for {
-            select {
-            case data, ok := <-r.Resolver.PropellerDataChannel:
-                if !ok {
-                    log.Printf("Propeller data channel closed, exiting goroutine")
-                    return
-                }
+		for {
+			select {
+			case data, ok := <-r.Resolver.PropellerDataChannel:
+				if !ok {
+					log.Printf("Propeller data channel closed, exiting goroutine")
+					return
+				}
 
-                log.Printf("Received data from PropellerDataChannel: %+v", data)
+				log.Printf("Received data from PropellerDataChannel: %+v", data)
 
-                // Send updates to the subscription channel
-                updateChannel <- &model.Propeller{
-                    ID:     data.ID,
-                    Pitch:  data.Pitch,
-                    Rpm:    data.RPM,
-                    Degree: data.Degree,
-                }
+				// Send updates to the subscription channel
+				updateChannel <- &model.Propeller{
+					ID:     data.ID,
+					Pitch:  data.Pitch,
+					Rpm:    data.RPM,
+					Degree: data.Degree,
+				}
 
-                log.Printf("Sent propeller data to updateChannel: %+v", data)
+				log.Printf("Sent propeller data to updateChannel: %+v", data)
 
-            case <-ctx.Done():
-                log.Printf("Context cancelled, exiting goroutine")
-                return
-            }
-        }
-    }()
+			case <-ctx.Done():
+				log.Printf("Context cancelled, exiting goroutine")
+				return
+			}
+		}
+	}()
 
-    return updateChannel, nil
+	return updateChannel, nil
 }
-
-
-
 
 // SteeringModeUpdated is the resolver for the steeringModeUpdated field.
 func (r *subscriptionResolver) SteeringModeUpdated(ctx context.Context) (<-chan *model.SteeringState, error) {
@@ -112,6 +94,31 @@ func (r *subscriptionResolver) SteeringModeUpdated(ctx context.Context) (<-chan 
 				Mode: model.SteeringModeAuto,
 			}
 		}
+	}()
+
+	return updateChannel, nil
+}
+
+// AlarmStateUpdated is the resolver for the alarmStateUpdated field.
+func (r *subscriptionResolver) AlarmStateUpdated(ctx context.Context) (<-chan *model.AlarmState, error) {
+	log.Printf("Entered start of alarmStateUpdated resolver")
+	updateChannel := make(chan *model.AlarmState)
+
+	// Use a goroutine to listen for updates
+	go func() {
+		log.Printf("Inside goroutine func for alarm state")
+		for data := range r.Resolver.AlarmDataChannel {
+			// Map the generated alarm data to the GraphQL model
+			alarm := &model.Alarm{
+				Name:          model.AlarmName(data.Name),
+				SeverityLevel: model.SeverityLevel(data.SeverityLevel),
+			}
+
+			updateChannel <- &model.AlarmState{
+				Alarms: []*model.Alarm{alarm},
+			}
+		}
+		close(updateChannel) // Ensure the channel is closed when done
 	}()
 
 	return updateChannel, nil
