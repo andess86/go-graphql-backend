@@ -1,0 +1,63 @@
+type Propeller {
+  id: ID!
+  pitch: Float!
+  rpm: Int!
+  degree: Int!
+}
+
+# Define an enum for the different steering modes
+enum SteeringMode {
+  START
+  AUTO
+  STOP
+  RESET
+}
+
+# Define an enum for all possible alarm names
+enum AlarmName {
+  OPEN_PITCH_PRESSURE
+  WRONG_WAY_ALARM
+  OPEN_LOAD_LIMIT_INPUT
+  CLUTCH_FAILURE
+  HUB_LUBRICATION_FAULT
+  CONTROL_FAULT
+  NO_HYDRAULIC_PRESSURE
+}
+
+# Define a type to represent an individual alarm
+type Alarm {
+  name: AlarmName!
+  severityLevel: SeverityLevel!
+}
+
+# Define an enum for severity levels
+enum SeverityLevel {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+# Define a type to represent the steering state
+type SteeringState {
+  mode: SteeringMode!
+}
+
+type Query {
+  getPropellerData: Propeller!
+  getSteeringMode: SteeringState!
+}
+
+# Define a type to represent the state of alarms, which is an array of Alarm
+#type AlarmState {
+#  alarms: [Alarm!]!
+#}
+
+type Mutation {
+  setSteeringMode(mode: SteeringMode!): SteeringState!
+}
+
+type Subscription {
+  propellerDataUpdated: Propeller!
+  steeringModeUpdated: SteeringState!
+  #alarmStateUpdated: AlarmState!
+}

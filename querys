@@ -1,0 +1,19 @@
+mutation createTodo {
+  createTodo(input: { text: "Finalize project plz!", userId: "Jacob" }) {
+    user {
+      id
+    }
+    text
+    done
+  }
+}
+
+query findTodos {
+  todos {
+    text
+    done
+    user {
+      name
+    }
+  }
+}
