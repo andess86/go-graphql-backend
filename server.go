@@ -21,16 +21,14 @@ func main() {
     }
 	
 
-    // Initialize the propeller generator and channel
+    // Initialize the generators and channels
     propellerGen := generator.NewPropellerGenerator()
     propellerChannel := propellerGen.StartGenerating()
-
 	alarmGen := generator.NewAlarmGenerator()
-
 	alarmChannel := alarmGen.StartGenerating()
 
 
-    // Create a new resolver instance with the propeller channel
+    // Create a new resolver instance with the channels
     resolver := &graph.Resolver{
         PropellerDataChannel: propellerChannel,
 		AlarmDataChannel: alarmChannel,
