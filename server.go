@@ -37,16 +37,6 @@ func main() {
 		
     }
 
-	
-	
-
-    // Start the propeller generator in a separate goroutine
-    // go func() {
-    //     for data := range propellerChannel {
-    //         log.Printf("Main received data: %+v", data)
-    //     }
-    // }()
-
     // Create a new server with the generated schema
     srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
     srv.AddTransport(&transport.Websocket{}) // Open up a websocket connection

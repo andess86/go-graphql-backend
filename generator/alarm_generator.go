@@ -33,23 +33,32 @@ func NewAlarmGenerator() *AlarmGenerator {
     return &AlarmGenerator{}
 }
 
-// StartGenerating returns a channel that emits alarm data periodically
-func (ag *AlarmGenerator) StartGenerating() <-chan Alarm {
-    alarmChannel := make(chan Alarm)
+// StartGenerating returns a channel that emits an array of alarm data periodically
+func (ag *AlarmGenerator) StartGenerating() <-chan []Alarm {
+    alarmChannel := make(chan []Alarm)
 
     go func() {
         log.Println("Starting to send mock alarm data...")
 
         defer close(alarmChannel)
         for {
-            alarmData := Alarm{
-                Name:          alarmNames[rand.Intn(len(alarmNames))],           // Random alarm name
-                SeverityLevel: severityLevels[rand.Intn(len(severityLevels))],   // Random severity level
-            }
-            alarmChannel <- alarmData
-            log.Println("Sent new alarm data:", alarmData)
+            // Random number of alarms between 1 and 5
+            numberOfAlarms := rand.Intn(5) + 1
+            alarms := make([]Alarm, numberOfAlarms)
 
-            time.Sleep(1 * time.Second) // Simulate data update every 1 second
+            for i := 0; i < numberOfAlarms; i++ {
+                alarms[i] = Alarm{
+                    Name:          alarmNames[rand.Intn(len(alarmNames))],          // Random alarm name
+                    SeverityLevel: severityLevels[rand.Intn(len(severityLevels))],  // Random severity level
+                }
+            }
+
+            // Send the generated array of alarms
+            alarmChannel <- alarms
+            log.Printf("Sent new alarm data: %v", alarms)
+
+            // Random sleep interval between 1 and 5 seconds
+            time.Sleep(time.Duration(rand.Intn(5)+1) * time.Second)
         }
     }()
 

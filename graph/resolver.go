@@ -11,7 +11,7 @@ import "github.com/andess86/gqlgen-todos/generator"
 
 type Resolver struct {
 	PropellerDataChannel <-chan generator.Propeller
-	AlarmDataChannel     <-chan generator.Alarm
+	AlarmDataChannel     <-chan []generator.Alarm
 
 }
 

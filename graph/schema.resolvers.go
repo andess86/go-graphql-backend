@@ -101,28 +101,34 @@ func (r *subscriptionResolver) SteeringModeUpdated(ctx context.Context) (<-chan 
 
 // AlarmStateUpdated is the resolver for the alarmStateUpdated field.
 func (r *subscriptionResolver) AlarmStateUpdated(ctx context.Context) (<-chan *model.AlarmState, error) {
-	log.Printf("Entered start of alarmStateUpdated resolver")
-	updateChannel := make(chan *model.AlarmState)
+    log.Printf("Entered start of alarmStateUpdated resolver")
+    updateChannel := make(chan *model.AlarmState)
 
-	// Use a goroutine to listen for updates
-	go func() {
-		log.Printf("Inside goroutine func for alarm state")
-		for data := range r.Resolver.AlarmDataChannel {
-			// Map the generated alarm data to the GraphQL model
-			alarm := &model.Alarm{
-				Name:          model.AlarmName(data.Name),
-				SeverityLevel: model.SeverityLevel(data.SeverityLevel),
-			}
+    // Use a goroutine to listen for updates
+    go func() {
+        log.Printf("Inside goroutine func for alarm state")
 
-			updateChannel <- &model.AlarmState{
-				Alarms: []*model.Alarm{alarm},
-			}
-		}
-		close(updateChannel) // Ensure the channel is closed when done
-	}()
+        for alarmArray := range r.Resolver.AlarmDataChannel {
+            // Convert generated alarms to GraphQL model alarms
+            modelAlarms := make([]*model.Alarm, len(alarmArray))
+            for i, alarm := range alarmArray {
+                modelAlarms[i] = &model.Alarm{
+                    Name:          model.AlarmName(alarm.Name),
+                    SeverityLevel: model.SeverityLevel(alarm.SeverityLevel),
+                }
+            }
 
-	return updateChannel, nil
+            // Send the array of alarms to the subscription channel
+            updateChannel <- &model.AlarmState{
+                Alarms: modelAlarms,
+            }
+        }
+        close(updateChannel) // Ensure the channel is closed when done
+    }()
+
+    return updateChannel, nil
 }
+
 
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
