@@ -76,6 +76,7 @@ func (r *subscriptionResolver) PropellerDataUpdated(ctx context.Context) (<-chan
 				return
 			}
 		}
+		
 	}()
 
 	return updateChannel, nil
