@@ -76,7 +76,7 @@ func (r *subscriptionResolver) PropellerDataUpdated(ctx context.Context) (<-chan
 				return
 			}
 		}
-		
+
 	}()
 
 	return updateChannel, nil
@@ -102,34 +102,33 @@ func (r *subscriptionResolver) SteeringModeUpdated(ctx context.Context) (<-chan 
 
 // AlarmStateUpdated is the resolver for the alarmStateUpdated field.
 func (r *subscriptionResolver) AlarmStateUpdated(ctx context.Context) (<-chan *model.AlarmState, error) {
-    log.Printf("Entered start of alarmStateUpdated resolver")
-    updateChannel := make(chan *model.AlarmState)
+	log.Printf("Entered start of alarmStateUpdated resolver")
+	updateChannel := make(chan *model.AlarmState)
 
-    // Use a goroutine to listen for updates
-    go func() {
-        log.Printf("Inside goroutine func for alarm state")
+	// Use a goroutine to listen for updates
+	go func() {
+		log.Printf("Inside goroutine func for alarm state")
 
-        for alarmArray := range r.Resolver.AlarmDataChannel {
-            // Convert generated alarms to GraphQL model alarms
-            modelAlarms := make([]*model.Alarm, len(alarmArray))
-            for i, alarm := range alarmArray {
-                modelAlarms[i] = &model.Alarm{
-                    Name:          model.AlarmName(alarm.Name),
-                    SeverityLevel: model.SeverityLevel(alarm.SeverityLevel),
-                }
-            }
+		for alarmArray := range r.Resolver.AlarmDataChannel {
+			// Convert generated alarms to GraphQL model alarms
+			modelAlarms := make([]*model.Alarm, len(alarmArray))
+			for i, alarm := range alarmArray {
+				modelAlarms[i] = &model.Alarm{
+					Name:          model.AlarmName(alarm.Name),
+					SeverityLevel: model.SeverityLevel(alarm.SeverityLevel),
+				}
+			}
 
-            // Send the array of alarms to the subscription channel
-            updateChannel <- &model.AlarmState{
-                Alarms: modelAlarms,
-            }
-        }
-        close(updateChannel) // Ensure the channel is closed when done
-    }()
+			// Send the array of alarms to the subscription channel
+			updateChannel <- &model.AlarmState{
+				Alarms: modelAlarms,
+			}
+		}
+		close(updateChannel) // Ensure the channel is closed when done
+	}()
 
-    return updateChannel, nil
+	return updateChannel, nil
 }
-
 
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }

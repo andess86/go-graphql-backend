@@ -24,7 +24,7 @@ type Propeller struct {
 	ID     string  `json:"id"`
 	Pitch  float64 `json:"pitch"`
 	Rpm    int     `json:"rpm"`
-	Degree int     `json:"degree"`
+	Degree float64 `json:"degree"`
 }
 
 type Query struct {

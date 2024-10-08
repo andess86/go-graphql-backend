@@ -2,7 +2,7 @@ type Propeller {
   id: ID!
   pitch: Float!
   rpm: Int!
-  degree: Int!
+  degree: Float!
 }
 
 # Define an enum for the different steering modes
