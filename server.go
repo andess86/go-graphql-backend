@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/andess86/gqlgen-todos/generator"
@@ -37,6 +39,8 @@ func main() {
 		
     }
 
+	// srv1 := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
+    // srv1.AddTransport(&transport.Websocket{}) // Open up a websocket connection
 
     // Create a new server with the generated schema
     srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
@@ -53,7 +57,8 @@ func main() {
 			},
 		},
 	})
-	
+	//This unbroke schema introspection, yay
+	srv.Use(extension.Introspection{})
 
     // Setup routes
     http.Handle("/", playground.Handler("GraphQL playground", "/query"))
